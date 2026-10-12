@@ -1,8 +1,5 @@
 # femsolver
 
-A finite element solver in Python 3, developed step by step in the exercises of
-the lecture *Numerics of Partial Differential Equations* (Universität Hamburg).
-
 ## Setup
 
 Requires Python 3 with `numpy` and `matplotlib`:
