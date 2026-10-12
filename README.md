@@ -1,4 +1,4 @@
-# fem-solver
+# femsolver
 
 A finite element solver in Python 3, developed step by step in the exercises of
 the lecture *Numerics of Partial Differential Equations* (Universität Hamburg).
@@ -11,18 +11,15 @@ Requires Python 3 with `numpy` and `matplotlib`:
 python3 -m pip install -r requirements.txt
 ```
 
-## Structure
+[NGSolve](https://ngsolve.org) is only needed to import meshes generated with
+Netgen/NGSolve (`python3 -m pip install ngsolve`).
 
-| file                 | content                                              |
-|----------------------|------------------------------------------------------|
-| `myfem/mesh.py`      | class `Mesh`, function `MakeStructuredMesh` (to do)  |
-| `myfem/draw.py`      | `DrawMesh` for plotting meshes                       |
-| `example_mesh.py`    | a small mesh entered by hand                         |
-| `test_mesh.py`       | tests for `MakeStructuredMesh`                       |
+## Provided files
 
-Run the example and the tests with
+| file                       | content                                                 |
+|----------------------------|---------------------------------------------------------|
+| `femsolver/draw.py`        | `DrawMesh` for plotting a mesh                          |
+| `femsolver/ngsinterface.py`| `ConvertNGSolveMesh`, converts a Netgen/NGSolve mesh    |
 
-```
-python3 example_mesh.py
-python3 test_mesh.py
-```
+All other files of the package `femsolver` are written by you, step by step,
+following the exercise sheets.
