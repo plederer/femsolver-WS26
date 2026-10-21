@@ -72,8 +72,11 @@ def MakeStructuredMesh(nx, ny, xmin=0.0, xmax=1.0, ymin=0.0, ymax=1.0):
         """number of the vertex at (xs[i], ys[j])"""
         return j * (nx + 1) + i
 
-    X, Y = np.meshgrid(xs, ys)
-    points = np.column_stack([X.ravel(), Y.ravel()])
+    # create points in lexicographic order and save physical coordinates in a list
+    points = []
+    for j in range(ny+1):
+        for i in range(nx+1):
+            points.append([xs[i%(nx+1)], ys[j%(ny+1)]])
 
     # every cell is split along the diagonal from (i, j) to (i+1, j+1)
     elements = []
@@ -98,7 +101,7 @@ def MakeStructuredMesh(nx, ny, xmin=0.0, xmax=1.0, ymin=0.0, ymax=1.0):
         bnd_labels.append("left")
 
     mesh = Mesh()
-    mesh.points = points
+    mesh.points = np.array(points)
     mesh.elements = np.array(elements, dtype=int)
     mesh.bnd_edges = np.array(bnd_edges, dtype=int)
     mesh.bnd_labels = bnd_labels
