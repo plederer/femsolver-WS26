@@ -1,6 +1,6 @@
 import numpy as np
 
-__all__ = ["Mesh", "MakeStructuredMesh"]
+__all__ = ["Mesh", "MakeStructuredMesh", "IntegrationRule", "MeshTrafo", "Integrate"]
 
 
 class Mesh:
@@ -106,3 +106,62 @@ def MakeStructuredMesh(nx, ny, xmin=0.0, xmax=1.0, ymin=0.0, ymax=1.0):
     mesh.bnd_edges = np.array(bnd_edges, dtype=int)
     mesh.bnd_labels = bnd_labels
     return mesh
+
+class IntegrationRule:
+    """Gauss rule on the reference triangle {(x,y): x, y >= 0, x + y <= 1}
+    that integrates all polynomials of degree <= order exactly.
+
+    points  : array (nip, 2), integration points on the reference triangle
+    weights : array (nip,), integration weights
+    """
+    
+    def __init__(self, order=1):
+        self.order = order
+        n = int(max(1, np.ceil((order + 2) / 2)))            # 1D points per direction
+        
+
+        xi, w = np.polynomial.legendre.leggauss(n)   # Gauss-Legendre on [-1, 1]
+        xi, w = 0.5 * (xi + 1), 0.5 * w              # ... on [0, 1]
+
+        # iterated integration: outer rule in x on [0, 1],
+        # inner rule in y on [0, 1 - x] (points and weights scaled by 1 - x)
+        X, E = np.meshgrid(xi, xi, indexing="ij")
+        W = np.outer(w, w)
+        X, E, W = X.ravel(), E.ravel(), W.ravel()
+        self.points = np.column_stack([X, (1 - X) * E])
+        self.weights = W * (1 - X)
+
+    def __len__(self):
+        return len(self.weights)
+
+
+class MeshTrafo:
+    """Affine map from the reference triangle onto element nr of the mesh:
+
+        F(xhat) = D xhat + b,  with  b = V0, D = [V1 - V0, V2 - V0],
+
+    where V0, V1, V2 are the vertices of the element.
+    """
+
+    def __init__(self, nr, mesh):
+        V0, V1, V2 = mesh.points[mesh.elements[nr]]
+        self.b = V0
+        self.D = np.column_stack([V1 - V0, V2 - V0])
+        self.J = abs(np.linalg.det(self.D))          # = 2 * area of the element
+
+    def map(self, xhat, yhat):
+        """Maps reference coordinates (scalars or arrays) to the element."""
+        x = self.D[0, 0] * xhat + self.D[0, 1] * yhat + self.b[0]
+        y = self.D[1, 0] * xhat + self.D[1, 1] * yhat + self.b[1]
+        return x, y
+
+
+def Integrate(f, mesh, order=1):
+    """Approximates the integral of f(x, y) over the meshed domain."""
+    ir = IntegrationRule(order)
+    integral = 0.0
+    for nr in range(mesh.ne):
+        trafo = MeshTrafo(nr, mesh)
+        x, y = trafo.map(ir.points[:, 0], ir.points[:, 1])
+        integral += trafo.J * np.sum(ir.weights * f(x, y))
+    return integral
