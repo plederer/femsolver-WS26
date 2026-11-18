@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-__all__ = ["DrawMesh"]
+__all__ = ["DrawMesh", "Draw"]
 
 
 def DrawMesh(mesh, numbering=False, boundary=True, ax=None, show=True):
@@ -51,6 +51,29 @@ def DrawMesh(mesh, numbering=False, boundary=True, ax=None, show=True):
     ax.set_aspect("equal")
     ax.set_title(f"{len(points)} vertices, {len(elements)} elements, "
                  f"{len(bnd_edges)} boundary edges")
+    if show:
+        plt.show()
+    return ax
+
+
+def Draw(gfu, surface=False, ax=None, show=True):
+    """Draws a piecewise linear GridFunction with matplotlib.
+
+    surface : if False, a colored plot of the domain; if True, a 3D surface
+    """
+    mesh = gfu.space.mesh
+    x, y = mesh.points[:, 0], mesh.points[:, 1]
+
+    if surface:
+        if ax is None:
+            fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+        ax.plot_trisurf(x, y, gfu.vec, triangles=mesh.elements, cmap="viridis")
+    else:
+        if ax is None:
+            fig, ax = plt.subplots()
+        tpc = ax.tripcolor(x, y, mesh.elements, gfu.vec, shading="gouraud", cmap="viridis")
+        plt.colorbar(tpc, ax=ax)
+        ax.set_aspect("equal")
     if show:
         plt.show()
     return ax

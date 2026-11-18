@@ -155,6 +155,14 @@ class MeshTrafo:
         y = self.D[1, 0] * xhat + self.D[1, 1] * yhat + self.b[1]
         return x, y
 
+    def mapinv(self, x, y):
+        """Maps physical coordinates (scalars or arrays) back to the reference triangle:
+        xhat = D^{-1} (x - b)."""
+        Dinv = np.linalg.inv(self.D)
+        xhat = Dinv[0, 0] * (x - self.b[0]) + Dinv[0, 1] * (y - self.b[1])
+        yhat = Dinv[1, 0] * (x - self.b[0]) + Dinv[1, 1] * (y - self.b[1])
+        return xhat, yhat
+
 
 def Integrate(f, mesh, order=1):
     """Approximates the integral of f(x, y) over the meshed domain."""
